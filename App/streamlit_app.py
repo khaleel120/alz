@@ -59,7 +59,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.set_option('deprecation.showPyplotGlobalUse', False)
+# st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # Display the title
 st.markdown("<h1 class='title'>Alzheimer's Disease Prediction</h1>", unsafe_allow_html=True)
@@ -106,6 +106,103 @@ if uploaded_file is not None:
     predicted_label = class_labels[predicted_idx]
 
     st.markdown(f"<p class='prediction'>Prediction: {predicted_label}</p>", unsafe_allow_html=True)
+
+else:
+    st.sidebar.write("Please upload an image.")
+
+
+import streamlit as st
+import tensorflow as tf
+from keras.models import load_model
+from PIL import Image
+import numpy as np
+
+# Load the pre-trained model
+model = load_model('model.h5')
+
+# Define the expected image size for the model
+IMG_SIZE = (128, 128)
+
+# Set the app title and sidebar with custom styling
+st.markdown(
+    """
+    <style>
+    .title {
+        color: #FF5733;
+        font-size: 40px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .text {
+        color: #EFA18A;
+        font-size: 20px;
+        font-weight: italic;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .prediction {
+        color: #FF5733;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Display the title
+st.markdown("<h1 class='title'>Alzheimer's Disease Prediction</h1>", unsafe_allow_html=True)
+st.markdown(
+    "<h1 class='text'>Upload a brain MRI image, and the AI will predict the stage of Alzheimer's disease.</h1>",
+    unsafe_allow_html=True
+)
+
+st.sidebar.title("Upload Image")
+st.sidebar.markdown("Please upload a brain MRI scan.")
+
+# ✅ **Fixed Image Preprocessing Function**
+def preprocess_image(image):
+    """Preprocesses the image for model prediction."""
+    image = image.convert("RGB")  # Ensure 3 color channels
+    image = image.resize(IMG_SIZE)  # Resize to model's expected input size
+    img_array = np.array(image, dtype=np.float32) / 255.0  # Normalize pixel values
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+    return img_array
+
+# ✅ **Fixed Prediction Function**
+def predict(image):
+    """Runs the model prediction on the preprocessed image."""
+    img_array = preprocess_image(image)
+    prediction = model.predict(img_array)
+    predicted_idx = np.argmax(prediction, axis=1)[0]
+    return predicted_idx
+
+# File uploader in sidebar
+uploaded_file = st.sidebar.file_uploader("Choose an image...", type=['jpg', 'jpeg', 'png'])
+
+if uploaded_file is not None:
+    try:
+        # Open and display the uploaded image
+        image = Image.open(uploaded_file)
+        st.image(image, caption='Uploaded Image', use_column_width=True)
+
+        # Run prediction
+        predicted_idx = predict(image)
+
+        # Class labels
+        class_labels = ['Mild Demented', 'Moderate Demented', 'Non Demented', 'Very Mild Demented']
+        predicted_label = class_labels[predicted_idx]
+
+        # Display result
+        st.markdown(f"<p class='prediction'>Prediction: {predicted_label}</p>", unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error(f"Error processing the image: {e}")
 
 else:
     st.sidebar.write("Please upload an image.")
