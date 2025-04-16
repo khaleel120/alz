@@ -112,7 +112,7 @@
 
 
 import streamlit as st
-# import tensorflow as tf
+import tensorflow as tf
 from keras.models import load_model
 from PIL import Image
 import numpy as np
@@ -206,9 +206,6 @@ if uploaded_file is not None:
 
 else:
     st.sidebar.write("Please upload an image.")
-
-# File: train_model.py
-# This script downloads and processes the dataset, then trains and saves the model
 
 # import os
 # import numpy as np
